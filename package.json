@@ -1,0 +1,14 @@
+{
+  "name": "wasm_test",
+  "version": "1.0.0",
+  "description": "Testing wasm (specifically in an audio environment)",
+  "main": "index.js",
+  "scripts": {
+    "let": "bash ./live_editor_typeless.sh"
+  },
+  "author": "slarmoo",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <link rel="stylesheet" href="./main.css" />
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>wasm test</title>
+</head>
+<script type="module" src="./main.js"></script>
+<body>
+    <input type="file" id="fileInput" accept="audio/*" />
+    <button id="playButton">play</button>
+    <div>
+        <label>Buffer size: </label>
+        <input type="range" id="bufferSizeInput" min="7" max="13" step="1" value="11" />
+    </div>
+    <div id="graphs"></div>
+    <footer><a href="https://github.com/slarmoo/wasmtest">github</a></footer>
+</body>
+</html>
