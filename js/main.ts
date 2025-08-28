@@ -8,6 +8,7 @@ const oscilloscope: Spectrogram = new Spectrogram(synth);
 const fileInput: HTMLInputElement = document.getElementById("fileInput") as HTMLInputElement;
 const playButton: HTMLButtonElement = document.getElementById("playButton") as HTMLButtonElement;
 const bufferSizeInput: HTMLInputElement = document.getElementById("bufferSizeInput") as HTMLInputElement;
+const corruptionAmountInput: HTMLInputElement = document.getElementById("pluginInput") as HTMLInputElement;
 const graphContainer: HTMLDivElement = document.getElementById("graphs") as HTMLDivElement;
 
 graphContainer.appendChild(oscilloscope.container);
@@ -17,6 +18,10 @@ bufferSizeInput.addEventListener("change", () => {
     const size: number = Math.pow(2, parseInt(bufferSizeInput.value));
     bufferSizeInput.title = size + "";
     synth.bufferSize = size;
+})
+
+corruptionAmountInput.addEventListener("change", () => {
+    synth.sendPluginData(parseInt(corruptionAmountInput.value));
 })
 
 fileInput.addEventListener("change", async () => {

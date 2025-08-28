@@ -137,11 +137,13 @@
         }
         if (event.data.type == "plugin") {
           loadPlugin(event.data.wasmBytes).then((plugin) => this.pluginModule = plugin).then(() => {
-            this.pluginModule?.setParam(0, 30);
             this.pluginModule?.setParam(1, 2);
           }).then(() => {
             console.log(this.pluginModule?.getParam(0));
           });
+        }
+        if (event.data.type == "pluginData") {
+          this.pluginModule?.setParam(0, event.data.pluginData);
         }
       };
     }

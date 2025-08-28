@@ -17,10 +17,11 @@ export class Synth {
         const buffer: AudioBuffer = await this.audioContext!.decodeAudioData(data);
 
         if (this.workletNode) {
+            const audioR = buffer.numberOfChannels >= 2 ? buffer.getChannelData(1) : null;
             this.workletNode.port.postMessage({
                 type: 'initialize',
                 audioFileL: buffer.getChannelData(0),
-                audioFileR: buffer.getChannelData(1),
+                audioFileR: audioR,
             }, );
             this.initialized = true;
         }
@@ -39,6 +40,13 @@ export class Synth {
         if (!this.isPlaying) {
             this.togglePause();
         }
+    }
+
+    public sendPluginData(data: number) {
+        this.workletNode!.port.postMessage({
+            type: 'pluginData',
+            pluginData: data
+        },);
     }
 
     public togglePause() {

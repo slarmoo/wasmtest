@@ -81,10 +81,11 @@
       await this.activate();
       const buffer = await this.audioContext.decodeAudioData(data);
       if (this.workletNode) {
+        const audioR = buffer.numberOfChannels >= 2 ? buffer.getChannelData(1) : null;
         this.workletNode.port.postMessage({
           type: "initialize",
           audioFileL: buffer.getChannelData(0),
-          audioFileR: buffer.getChannelData(1)
+          audioFileR: audioR
         });
         this.initialized = true;
       }
@@ -99,6 +100,12 @@
       if (!this.isPlaying) {
         this.togglePause();
       }
+    }
+    sendPluginData(data) {
+      this.workletNode.port.postMessage({
+        type: "pluginData",
+        pluginData: data
+      });
     }
     togglePause() {
       this.isPlaying = !this.isPlaying && this.initialized;
@@ -413,6 +420,7 @@
   var fileInput = document.getElementById("fileInput");
   var playButton = document.getElementById("playButton");
   var bufferSizeInput = document.getElementById("bufferSizeInput");
+  var corruptionAmountInput = document.getElementById("pluginInput");
   var graphContainer = document.getElementById("graphs");
   graphContainer.appendChild(oscilloscope.container);
   graphContainer.appendChild(spectrogram.container);
@@ -420,6 +428,9 @@
     const size = Math.pow(2, parseInt(bufferSizeInput.value));
     bufferSizeInput.title = size + "";
     synth.bufferSize = size;
+  });
+  corruptionAmountInput.addEventListener("change", () => {
+    synth.sendPluginData(parseInt(corruptionAmountInput.value));
   });
   fileInput.addEventListener("change", async () => {
     if (fileInput.files == null) return;
