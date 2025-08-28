@@ -3,7 +3,7 @@
   var __defProp = Object.defineProperty;
   var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-  // src/resizableBuffer.ts
+  // js/resizableBuffer.ts
   var ResizeableBuffer = class {
     constructor(initialArray, initialSize) {
       this.size = 0;
@@ -62,7 +62,7 @@
     }
   };
 
-  // src/synth.ts
+  // js/synth.ts
   var Synth = class {
     constructor() {
       this.isPlaying = false;
@@ -88,6 +88,14 @@
         });
         this.initialized = true;
       }
+      fetch("./bpbxplugpoc/bpbxplugpoc/plugin/build/corruption.wasm").then((wasm) => wasm.arrayBuffer()).then((wasmBytes) => {
+        if (this.workletNode) {
+          this.workletNode.port.postMessage({
+            type: "plugin",
+            wasmBytes
+          }, [wasmBytes]);
+        }
+      });
       if (!this.isPlaying) {
         this.togglePause();
       }
@@ -131,7 +139,7 @@
     }
   };
 
-  // src/imperative-html/elements-base.ts
+  // js/imperative-html/elements-base.ts
   function applyElementArgs(element, args) {
     for (const arg of args) {
       if (arg instanceof Node) {
@@ -199,7 +207,7 @@
   }
   __name(parseSVG, "parseSVG");
 
-  // src/imperative-html/elements-strict.ts
+  // js/imperative-html/elements-strict.ts
   var HTML = parseHTML;
   var SVG = parseSVG;
   for (const name of "a abbr address area article aside audio b base bdi bdo blockquote br button canvas caption cite code col colgroup datalist dd del details dfn dialog div dl dt em embed fieldset figcaption figure footer form h1 h2 h3 h4 h5 h6 header hr i iframe img input ins kbd label legend li link main map mark menu menuitem meta meter nav noscript object ol optgroup option output p param picture pre progress q rp rt ruby s samp script section select small source span strong style sub summary sup table tbody td template textarea tfoot th thead time title tr track u ul var video wbr".split(" ")) {
@@ -213,7 +221,7 @@
     }
   }
 
-  // src/fft.ts
+  // js/fft.ts
   function isPowerOf2(n) {
     return !!n && !(n & n - 1);
   }
@@ -330,7 +338,7 @@
   }
   __name(forwardRealFourierTransform, "forwardRealFourierTransform");
 
-  // src/spectrogram.ts
+  // js/spectrogram.ts
   var Spectrogram = class {
     constructor(synth2) {
       this._editorWidth = 720;
@@ -393,11 +401,12 @@
     }
   };
   function prettyNumber(value) {
-    return value.toFixed(2).replace(/\.?0*$/, "");
+    const pretty = value.toFixed(2).replace(/\.?0*$/, "");
+    return pretty == "NaN" ? "0" : pretty;
   }
   __name(prettyNumber, "prettyNumber");
 
-  // src/main.ts
+  // js/main.ts
   var synth = new Synth();
   var spectrogram = new Spectrogram(synth);
   var oscilloscope = new Spectrogram(synth);

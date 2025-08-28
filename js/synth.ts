@@ -21,9 +21,20 @@ export class Synth {
                 type: 'initialize',
                 audioFileL: buffer.getChannelData(0),
                 audioFileR: buffer.getChannelData(1),
-            });
+            }, );
             this.initialized = true;
         }
+
+        fetch("./bpbxplugpoc/bpbxplugpoc/plugin/build/corruption.wasm")
+        .then((wasm) => wasm.arrayBuffer())
+        .then((wasmBytes) => {
+            if (this.workletNode) {
+                this.workletNode.port.postMessage({
+                    type: 'plugin',
+                    wasmBytes: wasmBytes
+                }, [wasmBytes]);
+            }
+        })
         
         if (!this.isPlaying) {
             this.togglePause();
@@ -71,5 +82,4 @@ export class Synth {
         }
         await this.audioContext.resume();
     }
-
 }

@@ -85,5 +85,6 @@ export class Spectrogram {
 }
 
 function prettyNumber(value: number): string {
-    return value.toFixed(2).replace(/\.?0*$/, "");
+    const pretty: string = value.toFixed(2).replace(/\.?0*$/, "");
+    return pretty == "NaN" ? "0" : pretty;
 }
