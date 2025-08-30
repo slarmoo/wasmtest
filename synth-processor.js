@@ -28,6 +28,7 @@
     console.log(memory);
     const funcTable = wasmInstance.exports.__indirect_function_table;
     const malloc = wasmInstance.exports.malloc;
+    const free = wasmInstance.exports.free;
     HEAPU8 = new Uint8Array(memory.buffer);
     HEAPU32 = new Uint32Array(memory.buffer);
     HEAPF64 = new Float64Array(memory.buffer);
@@ -47,7 +48,7 @@
     if (apiVersion !== "0.0.1") {
       console.error("unsupported version " + apiVersion);
     }
-    const sizeOfPluginStruct = 64;
+    const sizeOfPluginStruct = 40;
     const pluginPointer = malloc(sizeOfPluginStruct);
     if (pluginPointer === 0) {
       console.error("could not allocate plugin instance");
@@ -63,6 +64,7 @@
     if (paramData === 0) {
       console.error("could not allocate plugin instance");
       destroy(pluginPointer);
+      free(pluginPointer);
       return;
     }
     for (let i = 0; i < paramCount; ++i) {
@@ -71,23 +73,30 @@
     HEAPU32[pluginPointer + 12 >> 2] = paramData;
     HEAPF64[pluginPointer + 24 >> 3] = 48e3;
     init(pluginPointer);
-    const tickContextPointer = malloc(12);
+    const tickContextPointer = malloc(24);
     const renderContextPointer = malloc(12);
     const ch0Pointer = malloc(8 * 128);
     const ch1Pointer = malloc(8 * 128);
     return {
       apiVersion,
       init: /* @__PURE__ */ __name(() => init(pluginPointer), "init"),
-      destroy: /* @__PURE__ */ __name(() => destroy(pluginPointer), "destroy"),
+      destroy: /* @__PURE__ */ __name(() => {
+        destroy(pluginPointer);
+        free(pluginPointer);
+        free(tickContextPointer);
+        free(renderContextPointer);
+        free(ch0Pointer);
+        free(ch1Pointer);
+      }, "destroy"),
       tick: /* @__PURE__ */ __name((tickContext) => {
         HEAPU32[tickContextPointer >> 2] = tickContext.bpm;
-        HEAPU32[tickContextPointer + 4 >> 2] = tickContext.beat;
-        HEAPU32[tickContextPointer + 8 >> 2] = tickContext.samplesPerTick;
+        HEAPU32[tickContextPointer + 8 >> 2] = tickContext.beat;
+        HEAPU32[tickContextPointer + 16 >> 2] = tickContext.samplesPerTick;
         tick(pluginPointer, tickContextPointer);
       }, "tick"),
       render: /* @__PURE__ */ __name((renderContext) => {
         HEAPU32[renderContextPointer >> 2] = renderContext.runLength;
-        HEAPU32[renderContextPointer + 4 >> 2] = renderContext.channelCount;
+        HEAPU8[renderContextPointer + 4] = renderContext.channelCount;
         HEAPU32[renderContextPointer + 8 >> 2] = ch0Pointer;
         HEAPU32[renderContextPointer + 12 >> 2] = ch1Pointer;
         for (let i = 0; i < renderContext.runLength; i++) {

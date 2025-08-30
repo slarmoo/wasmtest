@@ -32,7 +32,7 @@ export async function loadPlugin(wasmBytes: ArrayBuffer): Promise<PluginModule |
     console.log(memory)
     const funcTable: WebAssembly.Table = wasmInstance.exports.__indirect_function_table as WebAssembly.Table;
     const malloc: Function = wasmInstance.exports.malloc as Function;
-    // const free: Function = wasmInstance.exports.free as Function;
+    const free: Function = wasmInstance.exports.free as Function;
     // C ensures each integer type is memory-aligned
     // that is, 32-bit integers, which occupy 4 bytes, will only be placed in
     // addresses that are a multiple of 4. 16-bit integers, which occupy
@@ -69,7 +69,7 @@ export async function loadPlugin(wasmBytes: ArrayBuffer): Promise<PluginModule |
     if (apiVersion !== "0.0.1") {
         console.error("unsupported version " + apiVersion);
     }
-    const sizeOfPluginStruct = 64;
+    const sizeOfPluginStruct = 40;
     const pluginPointer = malloc(sizeOfPluginStruct);
     if (pluginPointer === 0) {
         console.error("could not allocate plugin instance");
@@ -90,6 +90,7 @@ export async function loadPlugin(wasmBytes: ArrayBuffer): Promise<PluginModule |
 
         // moduleStruct->destroy(pluginInst);
         destroy(pluginPointer);
+        free(pluginPointer);
         return;
     }
     // set all params to 0
@@ -102,7 +103,7 @@ export async function loadPlugin(wasmBytes: ArrayBuffer): Promise<PluginModule |
     HEAPF64[(pluginPointer + 24) >> 3] = 48000;
     init(pluginPointer);
 
-    const tickContextPointer = malloc(12);
+    const tickContextPointer = malloc(24);
     const renderContextPointer = malloc(12);
     const ch0Pointer = malloc(8 * 128);
     const ch1Pointer = malloc(8 * 128);
@@ -110,16 +111,23 @@ export async function loadPlugin(wasmBytes: ArrayBuffer): Promise<PluginModule |
     return {
         apiVersion: apiVersion,
         init: () => init(pluginPointer),
-        destroy: () => destroy(pluginPointer),
+        destroy: () => {
+            destroy(pluginPointer);
+            free(pluginPointer);
+            free(tickContextPointer);
+            free(renderContextPointer);
+            free(ch0Pointer);
+            free(ch1Pointer);
+        },
         tick: (tickContext: TickContext) => {
             HEAPU32[tickContextPointer >> 2] = tickContext.bpm;
-            HEAPU32[(tickContextPointer + 4) >> 2] = tickContext.beat;
-            HEAPU32[(tickContextPointer + 8) >> 2] = tickContext.samplesPerTick;
+            HEAPU32[(tickContextPointer + 8) >> 2] = tickContext.beat;
+            HEAPU32[(tickContextPointer + 16) >> 2] = tickContext.samplesPerTick;
             tick(pluginPointer, tickContextPointer);
         },
         render: (renderContext: RenderContext) => {
             HEAPU32[renderContextPointer >> 2] = renderContext.runLength;
-            HEAPU32[(renderContextPointer + 4) >> 2] = renderContext.channelCount;
+            HEAPU8[renderContextPointer + 4] = renderContext.channelCount;
             HEAPU32[(renderContextPointer + 8) >> 2] = ch0Pointer;
             HEAPU32[(renderContextPointer + 12) >> 2] = ch1Pointer;
             for (let i = 0; i < renderContext.runLength; i++) {
